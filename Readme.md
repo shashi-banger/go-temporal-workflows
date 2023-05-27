@@ -16,11 +16,11 @@
 
 ## Description
 
-- `workflows/mock_api_server.go`: Implements a moc API server having the following end points
+- `workflows/mock_api_server.go`: Implements a mock API server having the following end points
     - live_hooks
     - media_stream_to_abr_converter
 
-- `workflows/workflow.go`: Implements a temporal workflow called `CasWorkflow`. `CasWorkflow` creates a dag of activities and 
+- `workflows/workflow.go`: Implements a temporal workflow called `CasWorkflow`. `CasWorkflow` creates a DAG of activities and 
                         executes them. Each activity is essentially a POST call to mock server to create resource instances.
                         Also implements `CleanupActivity` which is executed when workflow is cancelled or times out to cleanup all resources created by the workflow.
 
