@@ -17,10 +17,6 @@ import (
 
 const TaskQueName = "casApiWorkflowQueue"
 
-type inputWorkflowModel struct {
-	Activities []Activity `yaml:"activities"`
-}
-
 // To run all tests in this file from the root of the repo:
 // go test -v ./workflows/
 func Test_FindPathAndValuesWithPattern(t *testing.T) {

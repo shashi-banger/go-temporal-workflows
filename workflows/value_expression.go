@@ -6,7 +6,7 @@ import (
 )
 
 // A value expression is of the form `ingests.1.result.foo.boo.zoo`.
-// This means that if A is map[string]interface{} representation of  `ingests.1`'s
+// This means that if A is map[string]interface{} result representation of  `ingests.1`'s
 // then the value of the expression is A["foo""]["boo"]["zoo]
 // Another example is `ingests.1.result.foo.boo.zoo.1` which means that the value of the expression is A["foo""]["boo"]["zoo][1]
 // Another example is `ingests.1.result.foo.boo.zoo.1.bar` which means that the value of the expression is A["foo""]["boo"]["zoo][1]["bar"]
