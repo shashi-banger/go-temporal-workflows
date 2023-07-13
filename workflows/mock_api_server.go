@@ -31,10 +31,11 @@ type mediaStreamInputParams struct {
 }
 
 type Meta struct {
-	ResourceId   string `json:"resource_id",omitempty`
-	WorkflowId   string `json:"workflow_id",omitempty`
-	ActivityName string `json:"activity_name",omitempty`
-	Status       string `json:"status",omitempty`
+	ResourceId      string `json:"resource_id",omitempty`
+	ClientRequestId string `json:"client_request_id",omitempty`
+	WorkflowId      string `json:"workflow_id",omitempty`
+	ActivityName    string `json:"activity_name",omitempty`
+	Status          string `json:"status",omitempty`
 }
 
 type liveHooksResp struct {
@@ -192,6 +193,7 @@ func mediaStreamToAbrConverterCreate(w http.ResponseWriter, r *http.Request) {
 
 	response := mediaStreamToAbrConverterResp{}
 	response.Meta.ResourceId = randomStringCreate(5)
+	response.Meta.ClientRequestId = headers["x-request-id"]
 	response.Meta.WorkflowId = headers["x-workflow-id"]
 	response.Meta.ActivityName = headers["x-activity-name"]
 	response.Meta.Status = "pending"
@@ -234,15 +236,13 @@ func mediaStreamToAbrConverterGet(w http.ResponseWriter, r *http.Request) {
 
 func mediaStreamToAbrConverterGetWithQuery(w http.ResponseWriter, r *http.Request) {
 	// Get query params from url
-	queryParams := r.URL.Query()
-	workflowId := queryParams["workflow_id"][0]
-	activityName := queryParams["activity_name"][0]
+	clientReqId := r.Header.Get("x-request-id")
 
 	mediaStreamToAbrConverterResp := mediaStreamToAbrConverterResp{}
 
 	found_resource := false
 	for _, v := range mediaStreamToAbrConverterStore {
-		if v.Meta.WorkflowId == workflowId && v.Meta.ActivityName == activityName {
+		if v.Meta.ClientRequestId == clientReqId {
 			mediaStreamToAbrConverterResp = v
 			found_resource = true
 			break

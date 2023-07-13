@@ -5,28 +5,23 @@ type ActivityType string
 type ActivityStatus string
 
 const (
-	Create ActivityType = "resource_create"
-	Update ActivityType = "update"
+	ApiCall ActivityType = "api_call"
 )
 
-const (
-	Pending   ActivityStatus = "pending"
-	Scheduled ActivityStatus = "scheduled"
-	Completed ActivityStatus = "completed"
-)
-
-type Activity struct {
-	//ActivityName is of the form {resourceName}.{id} id can be 1, 2, ... such that even
-	//the workflow can express multiple instances of same resource
-	ActivityName   string
-	ActivityStatus ActivityStatus
-	ActivityType   ActivityType
-	//DependsOnActivities []string // Array of activity names
-	ResourcePath          string
-	ResourceRequestParams map[string]interface{}
+type RequestParams struct {
+	Path   string
+	Method string
+	Body   map[string]interface{}
 }
 
-type WorkflowModel struct {
+type ActivityParams struct {
+	Name                  string
+	Type                  ActivityType
+	RequestParams         RequestParams
+	CompletenessCondition string
+}
+
+type Workflow struct {
 	NumActivities int
-	Activities    []Activity
+	Activities    []ActivityParams
 }

@@ -1,21 +1,28 @@
 activities:
-  live_hooks.1:
-    activity_type: resource_create
-    params:
-      resource_path: "/live_hooks"
-      resource_request_params:
-        sender_ip: 10.34.23.1
+  - name: live_hooks 
+    type: api_invoke
+
+    request_params:
+      path: "/live_hooks" 
+      method: POST
+      body:
+        sender_ip: 10.34.23.1 
         sender_port: 12345
-  media_stream_to_abr_converter.1:
-    activity_type: resource_create
-    params:
-      resource_path: "/media_stream_to_abr_converter"
-      resource_request_params:
+
+    completeness_condition: "{{.result.meta.status}} == 'created'"
+
+  - name: mstabr 
+    type: api_invoke
+
+    request_params:
+      path: "/media_stream_to_abr_converter" 
+      method: POST
+      body:
         media_input_params:
-          video_width: "{{ live_hooks.1.result.media_stream_input_params.video_params.video_width }}"
-          video_height: "{{ live_hooks.1.result.media_stream_input_params.video_params.video_height }}"
-          frame_rate_numerator: "{{ live_hooks.1.result.media_stream_input_params.video_params.frame_rate_numerator }}"
-          frame_rate_denominator: "{{ live_hooks.1.result.media_stream_input_params.video_params.frame_rate_denominator }}"
+          video_width: "{{ live_hooks.result.media_stream_input_params.video_params.video_width }}"
+          video_height: "{{ live_hooks.result.media_stream_input_params.video_params.video_height }}"
+          frame_rate_numerator: "{{ live_hooks.result.media_stream_input_params.video_params.frame_rate_numerator }}"
+          frame_rate_denominator: "{{ live_hooks.result.media_stream_input_params.video_params.frame_rate_denominator }}"
         hls_abr_settings:
           variants:
             - video_params:
@@ -28,3 +35,5 @@ activities:
                 video_height: 720
                 frame_rate_numerator: 30
                 frame_rate_denominator: 1
+
+    completeness_condition: "{{.result.meta.status}} == 'created'"

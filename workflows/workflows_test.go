@@ -2,10 +2,8 @@ package workflows
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"os"
-	"regexp"
 	"testing"
 	"time"
 
@@ -17,23 +15,7 @@ import (
 
 const TaskQueName = "casApiWorkflowQueue"
 
-// To run all tests in this file from the root of the repo:
-// go test -v ./workflows/
-func Test_FindPathAndValuesWithPattern(t *testing.T) {
-	tc1 := map[string]interface{}{
-		"key1": "value1",
-		"key2": map[string]interface{}{
-			"key3": "{{ingests.1.response.url}}",
-			"key4": "value4",
-		},
-		"key5": "{{ingests.1.response.url}}",
-	}
-
-	output := FindPathAndValuesWithPattern(regexp.MustCompile("{{.*}}"), tc1, []string{}, []Match{})
-	fmt.Println(output)
-}
-
-func createWorkflowModel(t *testing.T, wf string) *WorkflowModel {
+func createWorkflowModel(t *testing.T, wf string) *Workflow {
 	// open wf file and parse yaml file into map[string]interface{}
 	wfData := make(map[string]interface{})
 	// Read data from wf files
@@ -49,19 +31,21 @@ func createWorkflowModel(t *testing.T, wf string) *WorkflowModel {
 	}
 
 	// Create workflow model
-	wfModel := WorkflowModel{}
+	wfModel := Workflow{}
 
 	// Create workflow model from wfData
-	for k, v := range wfData["activities"].(map[string]interface{}) {
+	for _, v := range wfData["activities"].([]interface{}) {
 		activity := v.(map[string]interface{})
-		activityValue := Activity{}
-		activityValue.ActivityName = k
-		activityValue.ActivityStatus = Pending
+		activityValue := ActivityParams{}
+		activityValue.Name = activity["name"].(string)
+		activityValue.Type = ActivityType(activity["type"].(string))
+		activityValue.CompletenessCondition = activity["completeness_condition"].(string)
 
-		activityParams := activity["params"].(map[string]interface{})
+		activityValue.RequestParams = RequestParams{}
+		activityValue.RequestParams.Path = activity["request_params"].(map[string]interface{})["path"].(string)
+		activityValue.RequestParams.Method = activity["request_params"].(map[string]interface{})["method"].(string)
+		activityValue.RequestParams.Body = activity["request_params"].(map[string]interface{})["body"].(map[string]interface{})
 
-		activityValue.ResourceRequestParams = activityParams["resource_request_params"].(map[string]interface{})
-		activityValue.ResourcePath = activityParams["resource_path"].(string)
 		wfModel.Activities = append(wfModel.Activities, activityValue)
 	}
 	wfModel.NumActivities = len(wfModel.Activities)
@@ -79,8 +63,8 @@ func temporalWorker() {
 	w := worker.New(c, TaskQueName, worker.Options{})
 
 	// This worker hosts both Workflow and Activity functions.
-	w.RegisterWorkflow(CasWorkflow)
-	w.RegisterActivity(CreateResourceActivity)
+	w.RegisterWorkflow(ApiWorkflow)
+	w.RegisterActivity(ActivityProcessAPICall)
 	w.RegisterActivity(CleanupActivity)
 
 	// Start listening to the Task Queue.
@@ -108,7 +92,7 @@ func startWorkflow(t *testing.T) {
 
 	log.Printf("Starting Workflow: %s\n", options.ID)
 
-	we, err := c.ExecuteWorkflow(context.Background(), options, CasWorkflow, wfModel)
+	we, err := c.ExecuteWorkflow(context.Background(), options, ApiWorkflow, wfModel)
 	if err != nil {
 		log.Fatalln("Unable to start the Workflow:", err)
 	}

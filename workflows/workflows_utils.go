@@ -2,7 +2,6 @@ package workflows
 
 import (
 	"fmt"
-	"log"
 	"reflect"
 	"regexp"
 	"strings"
@@ -21,14 +20,34 @@ func FindPathAndValuesWithPattern(pattern *regexp.Regexp, obj map[string]interfa
 			output = FindPathAndValuesWithPattern(pattern, v.(map[string]interface{}), path, output)
 			path = path[:len(path)-1]
 		} else if reflect.TypeOf(v).Kind() == reflect.String {
-			fmt.Println(v, pattern)
 			if pattern.MatchString(v.(string)) {
-				fmt.Println("appending")
-				output = append(output, Match{append(path, k), strings.TrimSpace(v.(string))})
+				//fmt.Println("appending")
+				path = append(path, k)
+				dst := make([]string, len(path))
+
+				copy(dst, path)
+
+				output = append(output, Match{dst, strings.TrimSpace(v.(string))})
+				path = path[:len(path)-1]
 			}
+		} else if reflect.TypeOf(v).Kind() == reflect.Slice || reflect.TypeOf(v).Kind() == reflect.Array {
+			path = append(path, k)
+			//s := reflect.ValueOf(v)
+			for i, item := range v.([]interface{}) {
+				path[len(path)-1] = fmt.Sprintf("%s[%d]", k, i)
+				if reflect.TypeOf(item).Kind() == reflect.Map {
+					output = FindPathAndValuesWithPattern(pattern, reflect.ValueOf(item).Interface().(map[string]interface{}), path, output)
+				} else if reflect.TypeOf(item).Kind() == reflect.String {
+					if pattern.MatchString(reflect.ValueOf(item).Interface().(string)) {
+						dst := make([]string, len(path))
+						copy(dst, path)
+						output = append(output, Match{dst, strings.TrimSpace(reflect.ValueOf(item).Interface().(string))})
+					}
+				}
+			}
+			path = path[:len(path)-1]
 		}
 	}
-	log.Println("FindPathAndValuesWithPattern: ", len(output))
 	return output
 }
 

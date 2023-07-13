@@ -10,7 +10,7 @@ import (
 func FindDependencies(activity *Activity) []string {
 	dependencies := []string{}
 	allMatches := FindPathAndValuesWithPattern(regexp.MustCompile("{{.*}}"),
-		activity.ResourceRequestParams, []string{}, []Match{})
+		activity.RequestParams.Body, []string{}, []Match{})
 	for _, match := range allMatches {
 		matchVal := strings.TrimSpace(match.value[2 : len(match.value)-2])
 		activityName := GetActivityNameFromValueExpression(matchVal)
@@ -24,14 +24,14 @@ func CreateActivityDAG(activities []Activity) *dag.DAG {
 	d := dag.NewDAG()
 
 	for i := 0; i < len(activities); i++ {
-		d.AddVertexByID(activities[i].ActivityName, &activities[i])
+		d.AddVertexByID(activities[i].Name, &activities[i])
 	}
 
 	for _, activity := range activities {
 		// Find Dependencies
 		dependencies := FindDependencies(&activity)
 		for _, dependency := range dependencies {
-			d.AddEdge(dependency, activity.ActivityName)
+			d.AddEdge(dependency, activity.Name)
 		}
 	}
 

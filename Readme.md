@@ -14,6 +14,12 @@
     go test -v ./workflows --run Test_Workflow1
     ```
 
+## Unit Tests
+
+```bash
+go test -v ./workflows --run Test1
+```
+
 ## Description
 
 - `workflows/mock_api_server.go`: Implements a mock API server having the following end points
