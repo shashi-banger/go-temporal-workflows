@@ -14,6 +14,8 @@
     go test -v ./workflows --run Test_Workflow1
     ```
 
+Note:- For temporal installation check https://docs.temporal.io/kb/all-the-ways-to-run-a-cluster
+
 ## Unit Tests
 
 ```bash
